@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Wiki Rabbit Hole</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">🕳️</span><span>Wiki Rabbit Hole</span></div>
+  <form id="searchForm" class="search" autocomplete="off">
+    <input id="searchInput" type="search" placeholder="Search Wikipedia…  ( / )" aria-label="Search Wikipedia" />
+    <button type="submit">Dive</button>
+  </form>
+  <button id="randomBtn" class="ghost" title="Random article">🎲 Random</button>
+</header>
+
+<div class="stage">
+  <canvas id="graph"></canvas>
+  <aside id="panel" class="hidden" aria-live="polite">
+    <button id="panelClose" class="ghost" aria-label="Close panel">✕</button>
+    <img id="panelThumb" alt="" class="hidden" />
+    <h2 id="panelTitle"></h2>
+    <p id="panelMeta" class="meta"></p>
+    <p id="panelSummary"></p>
+    <a id="panelLink" target="_blank" rel="noopener">Open on Wikipedia ↗</a>
+  </aside>
+  <div id="hint">Click a node to dig deeper · drag to rearrange · scroll to zoom</div>
+</div>
+
+<footer class="bottombar">
+  <div id="trail" aria-label="Your path"></div>
+  <div id="stats"></div>
+</footer>
+
+<div id="toast" class="hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>
