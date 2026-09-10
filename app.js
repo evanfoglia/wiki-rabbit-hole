@@ -174,6 +174,9 @@ async function expand(node) {
     if (!fresh.length) toast("Dead end — no new links from here.");
     prune();
     updateStats();
+    if (focusTitle === node.title) {
+      panelMeta.textContent = "depth " + node.depth + " · " + degree(node.title) + " connections";
+    }
   } catch (err) {
     node.failed = true;
     toast("That branch didn't open. Tap the node to retry.");
@@ -506,9 +509,95 @@ function updateStats() {
 
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
+const suggestEl = document.getElementById("suggest");
+let suggestItems = [];
+let suggestActive = -1;
+let suggestTimer = null;
+
+function hideSuggest() {
+  suggestEl.classList.add("hidden");
+  suggestItems = [];
+  suggestActive = -1;
+}
+
+function diveTo(title) {
+  hideSuggest();
+  searchInput.value = title;
+  searchInput.blur();
+  toast("Diving into “" + title + "”…");
+  startFrom(title);
+}
+
+function renderSuggest(items) {
+  suggestItems = items;
+  suggestActive = -1;
+  suggestEl.innerHTML = "";
+  if (!items.length) { hideSuggest(); return; }
+  for (const t of items) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "suggest-item";
+    b.setAttribute("role", "option");
+    b.textContent = t;
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      diveTo(t);
+    });
+    suggestEl.appendChild(b);
+  }
+  suggestEl.classList.remove("hidden");
+}
+
+function markSuggestActive() {
+  const kids = suggestEl.children;
+  for (let i = 0; i < kids.length; i++) {
+    kids[i].classList.toggle("active", i === suggestActive);
+  }
+}
+
+searchInput.addEventListener("input", () => {
+  clearTimeout(suggestTimer);
+  const q = searchInput.value.trim();
+  if (q.length < 2) { hideSuggest(); return; }
+  suggestTimer = setTimeout(async () => {
+    try {
+      const results = await searchArticles(q, 7);
+      if (searchInput.value.trim() !== q) return; // stale
+      renderSuggest(results);
+    } catch (err) { hideSuggest(); }
+  }, 250);
+});
+
+searchInput.addEventListener("keydown", (e) => {
+  if (suggestEl.classList.contains("hidden")) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const n = suggestItems.length;
+    if (!n) return;
+    suggestActive = e.key === "ArrowDown"
+      ? (suggestActive + 1) % n
+      : (suggestActive - 1 + n) % n;
+    markSuggestActive();
+  } else if (e.key === "Escape") {
+    hideSuggest();
+  }
+});
+
+searchInput.addEventListener("blur", () => {
+  setTimeout(hideSuggest, 150); // let suggestion taps land first
+});
+
+document.addEventListener("pointerdown", (e) => {
+  if (!e.target.closest(".searchWrap")) hideSuggest();
+});
 
 searchForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (suggestActive >= 0 && suggestItems[suggestActive]) {
+    diveTo(suggestItems[suggestActive]);
+    return;
+  }
+  hideSuggest();
   const q = searchInput.value.trim();
   if (!q) return;
   searchInput.blur();
