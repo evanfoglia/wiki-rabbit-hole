@@ -43,7 +43,8 @@ body { display: flex; flex-direction: column; }
   white-space: nowrap;
 }
 
-.brand .logo { font-size: 22px; }
+.brand .logo { display: inline-flex; width: 26px; height: 26px; flex: none; }
+.logo svg { display: block; }
 
 .search {
   display: flex;
@@ -297,10 +298,10 @@ button.ghost {
 #toast.hidden { display: none; }
 
 @media (max-width: 640px) {
-  .topbar { flex-wrap: wrap; row-gap: 8px; }
-  .brand span:last-child { display: none; }
-  #randomBtn { margin-left: auto; }
-  .search { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
+  .topbar { flex-wrap: wrap; row-gap: 10px; }
+  .search { order: 2; flex-basis: 100%; max-width: none; margin-left: 0; }
+  #randomBtn .btnLabel { display: none; }
+  #randomBtn { padding: 9px 12px; }
   #panel {
     top: auto;
     bottom: 12px;
