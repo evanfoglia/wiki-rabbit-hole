@@ -10,7 +10,11 @@
 <header class="topbar">
   <div class="brand"><span class="logo">🕳️</span><span>Wiki Rabbit Hole</span></div>
   <form id="searchForm" class="search" autocomplete="off">
-    <input id="searchInput" type="search" placeholder="Search Wikipedia…  ( / )" aria-label="Search Wikipedia" />
+    <div class="searchWrap">
+      <input id="searchInput" type="search" placeholder="Search Wikipedia…  ( / )" aria-label="Search Wikipedia"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <div id="suggest" class="hidden" role="listbox" aria-label="Search suggestions"></div>
+    </div>
     <button type="submit">Dive</button>
   </form>
   <button id="randomBtn" class="ghost" title="Random article">🎲 Random</button>
