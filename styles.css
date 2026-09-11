@@ -286,6 +286,111 @@ button.ghost {
   white-space: nowrap;
 }
 
+.trailActions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+button.iconbtn {
+  padding: 7px 11px;
+  font-size: 13px;
+}
+
+#trail { min-width: 0; }
+
+/* ---------- saved trails sheet ---------- */
+.bottombar { position: relative; }
+
+#savedSheet {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 12px;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  padding: 12px;
+}
+
+#savedSheet.hidden { display: none; }
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sheetHead strong { font-size: 14px; }
+
+#savedClose {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 12px;
+  flex: none;
+}
+
+.savedRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.savedRow:hover { background: rgba(139, 124, 246, 0.1); }
+
+.savedInfo {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.savedInfo:hover { filter: none; }
+
+.savedName {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.savedMeta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.savedDel {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 12px;
+  flex: none;
+}
+
+.savedEmpty {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 2px 8px;
+}
+
 /* ---------- toast ---------- */
 #toast {
   position: fixed;
@@ -311,6 +416,8 @@ button.ghost {
   .search { order: 2; flex-basis: 100%; max-width: none; margin-left: 0; }
   #randomBtn .btnLabel { display: none; }
   #randomBtn { padding: 9px 12px; }
+  #saveBtn .btnLabel, #shareBtn .btnLabel { display: none; }
+  #stats { display: none; }
   #panel {
     top: auto;
     bottom: 12px;
@@ -321,3 +428,4 @@ button.ghost {
   }
   #hint { display: none; }
 }
+
