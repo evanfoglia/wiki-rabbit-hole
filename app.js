@@ -63,6 +63,7 @@ const nodes = new Map(); // title -> node
 const edges = [];        // {a, b} titles
 let focusTitle = null;
 let explored = 0;
+let history = []; // every article tapped, in first-visit order; never truncated
 
 function nodeRadius(n) {
   if (n.depth === 0) return 16;
@@ -106,21 +107,13 @@ function degree(title) {
   return d;
 }
 
-function trailTitles() {
-  const chain = [];
-  let t = focusTitle;
-  const guard = new Set();
-  while (t && nodes.has(t) && !guard.has(t)) {
-    guard.add(t);
-    chain.unshift(t);
-    t = nodes.get(t).parent;
-  }
-  return chain;
+function recordVisit(title) {
+  if (!history.includes(title)) history.push(title);
 }
 
 function prune() {
   if (nodes.size <= MAX_NODES) return;
-  const keep = new Set(trailTitles());
+  const keep = new Set(history);
   const candidates = [];
   for (const [title, n] of nodes) {
     if (keep.has(title)) continue;
@@ -144,6 +137,7 @@ function resetGraph() {
   nodes.clear();
   edges.length = 0;
   focusTitle = null;
+  history = [];
   explored = 0;
 }
 
@@ -186,6 +180,7 @@ async function expand(node) {
 }
 
 function focus(node) {
+  recordVisit(node.title);
   focusTitle = node.title;
   renderTrail();
   showPanel(node);
@@ -533,7 +528,7 @@ async function showPanel(node) {
 
 function renderTrail() {
   trailEl.innerHTML = "";
-  const chain = trailTitles();
+  const chain = history;
   chain.forEach((title, i) => {
     if (i > 0) {
       const sep = document.createElement("span");
@@ -692,3 +687,4 @@ requestAnimationFrame(loop);
     toast("Couldn't reach Wikipedia. Check your connection and reload.");
   }
 })();
+
