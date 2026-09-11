@@ -361,13 +361,37 @@ function hitNode(sx, sy) {
   return null;
 }
 
+const pointers = new Map();
+let pinchDist = 0;
+let pinching = false;
+
+function zoomAt(px, py, factor) {
+  const r = canvas.getBoundingClientRect();
+  const [wx, wy] = screenToWorld(px, py);
+  cam.zoom = Math.min(3, Math.max(0.25, cam.zoom * factor));
+  cam.x = wx - (px - r.width / 2) / cam.zoom;
+  cam.y = wy - (py - r.height / 2) / cam.zoom;
+}
+
 canvas.addEventListener("pointerdown", (e) => {
   canvas.setPointerCapture(e.pointerId);
   const r = canvas.getBoundingClientRect();
-  downX = e.clientX - r.left; downY = e.clientY - r.top;
-  lastPX = downX; lastPY = downY;
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  pointers.set(e.pointerId, [px, py]);
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinchDist = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    pinching = true;
+    if (dragNode) dragNode.fixed = false;
+    dragNode = null;
+    panning = false;
+    canvas.style.cursor = "grab";
+    return;
+  }
+  if (pointers.size !== 1) return;
+  lastPX = px; lastPY = py;
   moved = 0;
-  dragNode = hitNode(downX, downY);
+  dragNode = hitNode(px, py);
   if (dragNode) {
     dragNode.fixed = true;
   } else {
@@ -377,9 +401,22 @@ canvas.addEventListener("pointerdown", (e) => {
 });
 
 canvas.addEventListener("pointermove", (e) => {
-  if (!dragNode && !panning) return;
+  if (!pointers.has(e.pointerId)) return;
   const r = canvas.getBoundingClientRect();
   const px = e.clientX - r.left, py = e.clientY - r.top;
+  pointers.set(e.pointerId, [px, py]);
+  if (pinching) {
+    if (pointers.size >= 2) {
+      const [a, b] = [...pointers.values()];
+      const dist = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      if (pinchDist > 0 && dist > 0) {
+        zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, dist / pinchDist);
+      }
+      pinchDist = dist;
+    }
+    return;
+  }
+  if (!dragNode && !panning) return;
   moved += Math.abs(px - lastPX) + Math.abs(py - lastPY);
   if (dragNode) {
     const [wx, wy] = screenToWorld(px, py);
@@ -391,7 +428,25 @@ canvas.addEventListener("pointermove", (e) => {
   lastPX = px; lastPY = py;
 });
 
-canvas.addEventListener("pointerup", (e) => {
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+  if (pinching) {
+    if (pointers.size < 2) {
+      pinching = false;
+      pinchDist = 0;
+      if (pointers.size === 1) {
+        const [p] = [...pointers.values()];
+        lastPX = p[0]; lastPY = p[1];
+        moved = 0;
+        panning = true;
+        canvas.style.cursor = "grabbing";
+      } else {
+        panning = false;
+        canvas.style.cursor = "grab";
+      }
+    }
+    return;
+  }
   if (dragNode) {
     dragNode.fixed = false;
     if (moved < 6) {
@@ -407,17 +462,15 @@ canvas.addEventListener("pointerup", (e) => {
   }
   panning = false;
   canvas.style.cursor = "grab";
-});
+}
+
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
 
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
   const r = canvas.getBoundingClientRect();
-  const px = e.clientX - r.left, py = e.clientY - r.top;
-  const [wx, wy] = screenToWorld(px, py);
-  const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-  cam.zoom = Math.min(3, Math.max(0.25, cam.zoom * factor));
-  cam.x = wx - (px - r.width / 2) / cam.zoom;
-  cam.y = wy - (py - r.height / 2) / cam.zoom;
+  zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
 }, { passive: false });
 
 /* ---------------- UI: panel, trail, stats, toast ---------------- */
