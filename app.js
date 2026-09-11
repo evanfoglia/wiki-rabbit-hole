@@ -190,6 +190,7 @@ function focus(node) {
 
 async function startFrom(title) {
   resetGraph();
+  clearTrailParam();
   renderTrail();
   hidePanel();
   const root = addNode(title, null);
@@ -675,16 +676,178 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+/* ---------------- save & share trail ---------------- */
+
+const SAVE_KEY = "wrh.savedTrails.v1";
+const savedSheet = document.getElementById("savedSheet");
+const savedList = document.getElementById("savedList");
+
+function getSavedTrails() {
+  try {
+    const list = JSON.parse(localStorage.getItem(SAVE_KEY));
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+
+function setSavedTrails(list) {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+function clearTrailParam() {
+  try {
+    history.replaceState(null, "", location.pathname + location.hash);
+  } catch (e) {}
+}
+
+function trailName(titles) {
+  const short = (t) => t.length > 24 ? t.slice(0, 23) + "…" : t;
+  return short(titles[0]) + " → " + short(titles[titles.length - 1]);
+}
+
+function saveTrail() {
+  if (history.length < 2) {
+    toast("Wander a little first — saving needs at least 2 articles.");
+    return;
+  }
+  const list = getSavedTrails();
+  list.unshift({ name: trailName(history), titles: history.slice(), savedAt: Date.now() });
+  setSavedTrails(list.slice(0, 50));
+  toast("Trail saved.");
+  renderSavedSheet();
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (ok) resolve(); else reject(new Error("copy failed"));
+    } catch (e) {
+      document.body.removeChild(ta);
+      reject(e);
+    }
+  });
+}
+
+function shareTrail() {
+  if (history.length < 2) {
+    toast("Wander a little first — sharing needs at least 2 articles.");
+    return;
+  }
+  const param = history.map((t) => encodeURIComponent(t)).join("|");
+  const url = location.origin + location.pathname + "?trail=" + param;
+  copyText(url).then(
+    () => toast("Link copied — anyone who opens it walks your exact trail."),
+    () => toast("Couldn't copy automatically. The link is: " + url)
+  );
+}
+
+function decodeTrailParam(param) {
+  return param.split("|").map((s) => {
+    try { return decodeURIComponent(s); } catch (e) { return null; }
+  }).filter((t) => t && t.length);
+}
+
+function restoreTrail(titles) {
+  resetGraph();
+  hidePanel();
+  let prev = null;
+  for (const t of titles) {
+    const n = addNode(t, prev);
+    if (prev) addEdge(prev.title, n.title);
+    prev = n;
+  }
+  history = titles.slice();
+  explored = titles.length;
+  renderTrail();
+  updateStats();
+  if (prev) focus(prev);
+}
+
+function renderSavedSheet() {
+  const list = getSavedTrails();
+  savedList.innerHTML = "";
+  if (!list.length) {
+    const p = document.createElement("p");
+    p.className = "savedEmpty";
+    p.textContent = "Nothing saved yet. Wander the graph, then hit Save.";
+    savedList.appendChild(p);
+    return;
+  }
+  list.forEach((entry, i) => {
+    const row = document.createElement("div");
+    row.className = "savedRow";
+    const info = document.createElement("button");
+    info.className = "savedInfo";
+    info.type = "button";
+    const name = document.createElement("div");
+    name.className = "savedName";
+    name.textContent = entry.name;
+    const meta = document.createElement("div");
+    meta.className = "savedMeta";
+    const d = new Date(entry.savedAt);
+    meta.textContent = entry.titles.length + " articles · " +
+      (isNaN(d) ? "" : d.toLocaleDateString());
+    info.appendChild(name);
+    info.appendChild(meta);
+    info.addEventListener("click", () => {
+      savedSheet.classList.add("hidden");
+      restoreTrail(entry.titles.slice());
+    });
+    const del = document.createElement("button");
+    del.className = "ghost savedDel";
+    del.type = "button";
+    del.textContent = "✕";
+    del.setAttribute("aria-label", "Delete saved trail");
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const l = getSavedTrails();
+      l.splice(i, 1);
+      setSavedTrails(l);
+      renderSavedSheet();
+    });
+    row.appendChild(info);
+    row.appendChild(del);
+    savedList.appendChild(row);
+  });
+}
+
+document.getElementById("saveBtn").addEventListener("click", saveTrail);
+document.getElementById("shareBtn").addEventListener("click", shareTrail);
+document.getElementById("savedBtn").addEventListener("click", () => {
+  renderSavedSheet();
+  savedSheet.classList.toggle("hidden");
+});
+document.getElementById("savedClose").addEventListener("click", () => {
+  savedSheet.classList.add("hidden");
+});
+
 /* ---------------- boot ---------------- */
 
 resize();
 requestAnimationFrame(loop);
 
 (async function init() {
+  const param = new URLSearchParams(location.search).get("trail");
+  const titles = param ? decodeTrailParam(param) : [];
   try {
-    startFrom(await randomArticle());
+    if (titles.length >= 2) {
+      restoreTrail(titles);
+    } else {
+      startFrom(await randomArticle());
+    }
   } catch (err) {
     toast("Couldn't reach Wikipedia. Check your connection and reload.");
   }
 })();
+
 
