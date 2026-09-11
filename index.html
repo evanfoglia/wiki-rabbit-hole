@@ -53,7 +53,16 @@
 
 <footer class="bottombar">
   <div id="trail" aria-label="Your path"></div>
+  <div class="trailActions">
+    <button type="button" id="saveBtn" class="ghost iconbtn" title="Save this trail" aria-label="Save this trail"><span aria-hidden="true">💾</span><span class="btnLabel"> Save</span></button>
+    <button type="button" id="shareBtn" class="ghost iconbtn" title="Copy a shareable link to this trail" aria-label="Share this trail"><span aria-hidden="true">🔗</span><span class="btnLabel"> Share</span></button>
+    <button type="button" id="savedBtn" class="ghost iconbtn" title="Saved trails" aria-label="Saved trails"><span aria-hidden="true">📚</span></button>
+  </div>
   <div id="stats"></div>
+  <div id="savedSheet" class="hidden" role="dialog" aria-label="Saved trails">
+    <div class="sheetHead"><strong>Saved trails</strong><button type="button" id="savedClose" class="ghost" aria-label="Close saved trails">✕</button></div>
+    <div id="savedList"></div>
+  </div>
 </footer>
 
 <div id="toast" class="hidden"></div>
@@ -64,3 +73,4 @@
 <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
