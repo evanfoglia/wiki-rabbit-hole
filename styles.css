@@ -391,6 +391,31 @@ button.iconbtn {
   margin: 4px 2px 8px;
 }
 
+/* ---------- welcome ---------- */
+#welcome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 5;
+  pointer-events: none;
+}
+#welcome.hidden { display: none; }
+#welcome .welcomeCard {
+  pointer-events: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 36px;
+  text-align: center;
+  max-width: 340px;
+}
+#welcome h1 { margin: 0 0 8px; font-size: 24px; }
+#welcome p { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+#welcome button { font-size: 16px; padding: 12px 28px; }
+
 /* ---------- toast ---------- */
 #toast {
   position: fixed;
@@ -428,4 +453,5 @@ button.iconbtn {
   }
   #hint { display: none; }
 }
+
 
