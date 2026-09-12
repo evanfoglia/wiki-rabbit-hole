@@ -189,6 +189,7 @@ function focus(node) {
 }
 
 async function startFrom(title) {
+  hideWelcome();
   resetGraph();
   clearTrailParam();
   renderTrail();
@@ -660,14 +661,17 @@ searchForm.addEventListener("submit", async (e) => {
   }
 });
 
-document.getElementById("randomBtn").addEventListener("click", async () => {
+document.getElementById("randomBtn").addEventListener("click", rollRandom);
+document.getElementById("welcomeRandom").addEventListener("click", rollRandom);
+
+async function rollRandom() {
   toast("Rolling the dice…");
   try {
     startFrom(await randomArticle());
   } catch (err) {
     toast("Couldn't fetch a random article. Try again.");
   }
-});
+}
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "/" && document.activeElement !== searchInput) {
@@ -836,6 +840,10 @@ document.getElementById("savedClose").addEventListener("click", () => {
 resize();
 requestAnimationFrame(loop);
 
+const welcomeEl = document.getElementById("welcome");
+function showWelcome() { welcomeEl.classList.remove("hidden"); }
+function hideWelcome() { welcomeEl.classList.add("hidden"); }
+
 (async function init() {
   const param = new URLSearchParams(location.search).get("trail");
   const titles = param ? decodeTrailParam(param) : [];
@@ -843,11 +851,12 @@ requestAnimationFrame(loop);
     if (titles.length >= 2) {
       restoreTrail(titles);
     } else {
-      startFrom(await randomArticle());
+      showWelcome();
     }
   } catch (err) {
     toast("Couldn't reach Wikipedia. Check your connection and reload.");
   }
 })();
+
 
 
