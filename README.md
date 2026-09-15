@@ -1,5 +1,7 @@
 # Wiki Rabbit Hole 🕳️
 
+**Live:** https://wiki-rabbit-hole.pages.dev
+
 An interactive Wikipedia explorer. Articles become nodes in a force-directed
 graph — click any node to spider outward through its links and watch your
 rabbit hole grow, with your full trail mapped along the bottom.
@@ -42,3 +44,4 @@ GitHub Pages, Netlify, or Vercel.
 - Wikipedia's API is free for reasonable use. The app sends only your search
   terms and the titles of articles you open — nothing else leaves the browser.
 - Graph auto-prunes old leaf nodes past 150 to stay smooth.
+
